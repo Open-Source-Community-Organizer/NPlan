@@ -14,12 +14,7 @@ runserver:
 	docker exec -it $(backend_container) uvicorn app.main:app --port 9000 --host 0.0.0.0 --reload
 
 runbackend:
-	docker compose -f docker-compose.yml up --build
-
-coverage:
-	$(docker_backend) coverage run --source=app -m pytest
-	$(docker_backend) coverage xml
-
+	docker compose -f docker-compose.yml up -d --build
 
 migrate:
 	$(docker_backend) alembic upgrade head
@@ -37,12 +32,12 @@ pylint:
 	$(docker_backend) pylint ./app --disable=C0114,C0115,C0116,R0903,R0913,C0411 --extension-pkg-whitelist=pydantic --load-plugins pylint_flask_sqlalchemy
 
 mypy:
-	$(docker_backend) mypy ./app --install-types --strict
+	$(docker_backend) mypy ./app --install-types
 
 check: pylint \
 	mypy \
 	tests \
 
 tests:
-	docker compose run --rm -e TESTING=true $(backend_container) pytest ./app/tests -x -vv
+	$(docker_backend) pytest ./app/tests -x -vv
 
