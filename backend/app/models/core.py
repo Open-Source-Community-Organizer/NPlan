@@ -1,16 +1,16 @@
 from app.db.base_class import Base
+from sqlalchemy import Column, Integer, String
 from app.crud.base import CRUD
-from sqlalchemy.orm import Mapped, mapped_column, synonym
 
 
-class Book(Base, CRUD["Book"]):
-    __tablename__: str = "book"  # type: ignore
+class Book(Base, CRUD["Books"]):
+    __tablename__ = "books"
 
-    book_id: Mapped[int] = mapped_column(
-        primary_key=True, index=True, autoincrement=True
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
     )
-    title: Mapped[str] = mapped_column(nullable=False)
-    content: Mapped[str] = mapped_column(nullable=False)
-    pages: Mapped[int] = mapped_column(nullable=False)
-
-    id: Mapped[int] = synonym("book_id")
+    title = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    pages = Column(Integer, nullable=False)
