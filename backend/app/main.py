@@ -35,8 +35,8 @@ class LoggingMiddleware:
 
 
 app = FastAPI(
-    title="FastAPI Boilerplate Microservice",
-    description="""This is a boilerplate microservice for setting up CRUD operations quickly.""",
+    title="NPLAN FastAPI Swagger",
+    description="""NPLAN Swagger to test CRUD API endpoints.""",
     root_path="/api/v1",
 )
 
