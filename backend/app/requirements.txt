@@ -16,7 +16,9 @@ sqlalchemy==2.0.25
 httpx==0.26.0
 requests==2.31.0
 types-requests==2.31.0.1
-
+slowapi
+boto3
+moto[s3]==4.2.13
 
 # LINTING
 isort==5.12.0

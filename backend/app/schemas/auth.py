@@ -1,38 +1,41 @@
-from typing import Optional, Annotated
-from pydantic import constr, StringConstraints, ConfigDict
+from enum import IntEnum
+from typing import Optional
+
+from pydantic import constr, EmailStr
+
 from app.schemas.base import CustomBaseModel as BaseModel
 
-valid_username = Annotated[
-    str, StringConstraints(strip_whitespace=True, pattern="^[a-zA-Z0-9]{4," "20}$")
-]
-valid_password = Annotated[
-    str,
-    StringConstraints(
-        strip_whitespace=True, pattern=r"^(?=.*[A-Z])(?=.*\W)[^\s]{8,20}$"
-    ),
-]
+password_validator = constr(pattern=r"^(?=.*[A-Z])(?=.*\W)[^\s]{8,30}$")  # pylint: disable=C0103
+username_validator = constr(pattern="^[a-zA-Z0-9]{4,20}$")  # pylint: disable=C0103, W1401
+
+
+class RoleEnum(IntEnum):
+    USER = 1  # pylint: disable=invalid-name
+    ADMIN = 2  # pylint: disable=invalid-name
+    DEVELOPER = 3  # pylint: disable=invalid-name
 
 
 class AccountRegisterSchema(BaseModel):
-    model_config = ConfigDict(regex_engine="python-re")
-    username: valid_username  # type: ignore
-    password: valid_password  # type: ignore
-    repeat_password: valid_password  # type: ignore
+    username: username_validator  # type: ignore
+    email: EmailStr  # type: ignore
+    password: password_validator  # type: ignore
+    repeat_password: password_validator  # type: ignore
 
 
 class AccountCreateSchema(BaseModel):
-    username: valid_username  # type: ignore
+    username: username_validator  # type: ignore
     password: str
-
-
-class AccountCredentialsSchema(AccountCreateSchema):
-    user_id: int
+    email: EmailStr
 
 
 class AccountUpdatePasswordSchema(BaseModel):
-    before_password: Optional[valid_password]  # type: ignore
-    password: Optional[valid_password]  # type: ignore
-    repeat_password: Optional[valid_password]  # type: ignore
+    before_password: password_validator  # type: ignore
+    password: password_validator  # type: ignore
+    repeat_password: password_validator  # type: ignore
+
+
+class AccountUpdateEmailSchema(BaseModel):
+    new_email: EmailStr  # type: ignore
 
 
 class AccountSchema(AccountRegisterSchema):
@@ -42,7 +45,14 @@ class AccountSchema(AccountRegisterSchema):
 
 class CurrentUserSchema(BaseModel):
     user_id: int
-    username: valid_username  # type: ignore
+    email: Optional[EmailStr]  # type: ignore
+    username: username_validator  # type: ignore
+    role: RoleEnum
+    verified: bool
+
+
+class UpdateUserRoleSchema(BaseModel):
+    role: Optional[RoleEnum]
 
 
 class CurrentUserWithJWTSchema(BaseModel):
@@ -53,5 +63,22 @@ class CurrentUserWithJWTSchema(BaseModel):
 
 
 class AuthSchema(BaseModel):
-    username: valid_username  # type: ignore
-    password: valid_password  # type: ignore
+    username: username_validator  # type: ignore
+    password: password_validator  # type: ignore
+
+
+class UploaderSchema(BaseModel):
+    user_id: int
+    username: username_validator
+
+
+class SendPasswordResetEmailSchema(BaseModel):
+    email: EmailStr
+
+
+class SendNewPasswordSchema(BaseModel):
+    token: str
+
+
+class VerifyEmailSchema(BaseModel):
+    token: str
