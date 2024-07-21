@@ -14,14 +14,14 @@ runserver:
 	docker exec -it $(backend_container) uvicorn app.main:app --port 9000 --host 0.0.0.0 --reload
 
 runbackend:
-	docker compose -f docker-compose.yml up --build
 
 coverage:
 	$(docker_backend) coverage run --source=app -m pytest
 	$(docker_backend) coverage xml
 
 
-migrate:
+migrate:	docker compose -f docker-compose.yml up --build
+
 	$(docker_backend) alembic upgrade head
 
 migrations:

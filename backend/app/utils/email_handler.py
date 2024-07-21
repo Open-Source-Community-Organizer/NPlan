@@ -10,9 +10,9 @@ MAILTRAP_API_SEND_URL = "https://send.api.mailtrap.io/api/send"
 
 env = Environment(loader=FileSystemLoader("./app/email_templates/"))
 
-#verify_email_template = env.get_template("verify_email.html")
-#reset_password_email_template = env.get_template("reset_password.html")
-#new_password_email_template = env.get_template("new_password.html")
+verify_email_template = env.get_template("verification_email.html")
+reset_password_email_template = env.get_template("password_reset.html")
+new_password_email_template = env.get_template("new_password.html")
 
 APPLICATION_JSON_TYPE = "application/json"
 
