@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@apiClient": ["src/api/apiClient.ts"],
+      "@api/auth": ["src/api/auth/"],
+      "@api/actions": ["src/api/actions/"],
+      "@api/analytics": ["src/api/analytics/"],
+      "@api/library": ["src/api/library/"],
+      "@api/scoreboard": ["src/api/scoreboard/"],
+      "@components": ["src/components/"],
+      "@features": ["src/features/"],
+      "@providers": ["src/providers/"],
+      "@utils": ["src/utils/"],
+      "@forms/*": ["src/utils/forms/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

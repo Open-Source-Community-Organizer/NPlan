@@ -1,48 +1,88 @@
 .ONESHELL:
-SHELL = bash
 
+SHELL := bash
+
+frontend_container := frontend
 backend_container := backend
 docker_run := docker compose run --rm
 docker_backend := $(docker_run) $(backend_container)
+
+local_postgres_user := postgres
+local_postgres_db_name := app
+
+ifeq ($(version),)
+	DC_COMMAND := docker compose
+else
+	DC_COMMAND := docker compose -f docker-compose.$(version).yml
+endif
 
 -include ./Makefile.properties
 
 hello:
 	echo "Hello, world!"
 
-runserver:
-	docker exec -it $(backend_container) uvicorn app.main:app --port 9000 --host 0.0.0.0 --reload
-
-runbackend:
-
 coverage:
-	$(docker_backend) coverage run --source=app -m pytest
-	$(docker_backend) coverage xml
+	$(DC_COMMAND) run -e TESTING=true --rm $(backend_container) coverage run --source=app -m pytest -x
 
+generate_xml:
+	$(DC_COMMAND) run -e TESTING=true --rm $(backend_container) coverage xml -i
 
-migrate:	docker compose -f docker-compose.yml up --build
+build:
+	$(DC_COMMAND) stop && $(DC_COMMAND) build --no-cache && $(DC_COMMAND) up -d
 
-	$(docker_backend) alembic upgrade head
+stop:
+	$(DC_COMMAND) stop
+
+run:
+	$(DC_COMMAND) up -d
+down:
+	$(DC_COMMAND) down
+
+runserver:
+	docker exec -it $(backend_container_name) uvicorn app.main:app --port 9000 --host 0.0.0.0 --reload
+
+buildbackend:
+	$(DC_COMMAND) up -d --build $(backend_container)
+
+buildfrontend:
+	$(DC_COMMAND) up -d --build $(frontend_container)
+
+migrate:
+	$(DC_COMMAND) run --rm $(backend_container) alembic upgrade head
+
+downgrade:
+	$(DC_COMMAND) run --rm $(backend_container) alembic downgrade -1
 
 migrations:
-	$(docker_backend) alembic revision --autogenerate -m $(name)
+	$(DC_COMMAND) run --rm $(backend_container) alembic revision --autogenerate -m $(name)
 
-migrateversion:
-	$(docker_backend) alembic upgrade $(version)
-
-stamp:
-	$(docker_backend) alembic stamp $(version)
-
-pylint:
-	$(docker_backend) pylint ./app --disable=C0114,C0115,C0116,R0903,R0913,C0411 --extension-pkg-whitelist=pydantic --load-plugins pylint_flask_sqlalchemy
+ruff:
+	$(DC_COMMAND) run --rm $(backend_container) ruff check .
 
 mypy:
-	$(docker_backend) mypy ./app --install-types --strict
+	$(DC_COMMAND) run --rm $(backend_container) mypy ./app --install-types --strict
 
-check: pylint \
+check: ruff \
 	mypy \
 	tests \
 
 tests:
-	docker compose run --rm -e TESTING=true $(backend_container) pytest ./app/tests -x -vv
+	$(DC_COMMAND) run -e TESTING=true --rm $(backend_container) pytest ./app/tests -x -vv
 
+test:
+	$(DC_COMMAND) run --rm -e TESTING=true $(backend_container) pytest ./app/tests/api/$(file).py -x -vv
+
+local-dump:
+	scp $(user)@$(domain):./holy-grail/$(sql_file_name).sql .
+	docker exec -i holy-grail-db psql -U $(local_postgres_user) -d $(local_postgres_db_name) < $(sql_file_name).sql
+
+dump:
+	docker exec -i holy-grail-db psql -U $(local_postgres_user) -d $(local_postgres_db_name) < $(sql_file_name).sql
+
+venv:
+	( \
+	  pip install virtualenv; \
+	  virtualenv holy-grail-backend/backend/app/.venv --prompt="holy-grail-py1.0"; \
+      source holy-grail-backend/backend/app/.venv/bin/activate; \
+      pip install -r holy-grail-backend/backend/app/requirements.txt; \
+      )

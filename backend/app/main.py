@@ -5,34 +5,15 @@ import logging
 from app.api.api import api_router
 from fastapi import FastAPI, Request
 from fastapi.middleware import cors
+
+from app.utils.email_handler import MAILTRAP_BEARER_TOKEN
 from app.utils.observability import PrometheusMiddleware, metrics, setting_otlp, uvicorn_logger
 
+print(f"MAILTRAP_BEARER_TOKEN: {MAILTRAP_BEARER_TOKEN}") #trying to see what the token is
 
 APP_NAME = os.environ.get("APP_NAME", "backend")
 EXPOSE_PORT = os.environ.get("EXPOSE_PORT", 8000)
 OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "http://tempo:4317")
-
-
-class LoggingMiddleware:
-    @staticmethod
-    async def log_request(request: Request, call_next):
-        start_time = time.time()
-        response = await call_next(request)
-        process_time_seconds = time.time() - start_time
-        process_time_ms = round(
-            process_time_seconds * 1000, 6
-        )  # Convert to milliseconds and round to 6 decimal places
-        process_time_str = f"{process_time_ms} ms"
-
-        log_data = {
-            "request_method": request.method,
-            "request_url": request.url.path,
-            "response_status": response.status_code,
-            "process_time_ms": process_time_str,
-        }
-        uvicorn_logger.info(json.dumps(log_data))
-        return response
-
 
 app = FastAPI(
     title="NPLAN FastAPI Swagger",
@@ -43,7 +24,7 @@ app = FastAPI(
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
-    return await LoggingMiddleware.log_request(request, call_next)
+    return await Logging_Middleware.log_request(request, call_next)
 
 
 app.add_middleware(
